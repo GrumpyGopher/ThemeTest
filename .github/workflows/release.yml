@@ -18,7 +18,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-# Create theme archives here! Zipping everything together and creating a complete theme archive.
+
+      # Zip all theme directories
       - name: Zip Legacy directories
         run: |
           mkdir -p /tmp/release
@@ -27,15 +28,13 @@ jobs:
             zip_name=$(basename "$dir")
             zip_path="/tmp/release/${zip_name}.muxthm"
             echo "Zipping contents of $dir into $zip_path"
-            
             (cd "$dir" && zip -qq -r "$zip_path" ./*)
           done
-          
-# Create the archive!          
+
       - name: List archives
-        run: |
-          ls -1 /tmp/release
-          
+        run: ls -l /tmp/release
+
+      # Clean up old releases if needed
       - name: Delete releases
         uses: sgpublic/delete-release-action@v1.1
         with:
@@ -50,38 +49,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Set release tag based on timestamp
       - name: Get release name for artifacts
         id: date
+        run: echo "date=$(date +'%Y-%m-%d_%H%M')" >> $GITHUB_OUTPUT
+
+      # Create release with all .muxthm files
+      - name: Create GitHub Release
         run: |
-            echo "date=$(date +'%Y-%m-%d_%H%M')" >> $GITHUB_OUTPUT
-
-      - name: Prepare Release
-        uses: ncipollo/release-action@v1.14.0
-        with:
-          name: "All Themes"
-          tag: "${{steps.date.outputs.date}}"
-          allowUpdates: true
-          draft: true
-          prerelease: false
-          replacesArtifacts: false
-          omitNameDuringUpdate: true
-          artifacts: "/tmp/release/*.muxthm"
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish Release
-        uses: ncipollo/release-action@v1.14.0
-        with:
-          name: "All Themes"
-          tag: "${{steps.date.outputs.date}}"
-          omitBodyDuringUpdate: true
-          omitNameDuringUpdate: true
-          allowUpdates: true
-          draft: false
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+          gh release create "${{ steps.date.outputs.date }}" /tmp/release/*.muxthm \
+            --title "All Themes" \
+            --notes "Automated release of all themes." \
+            --draft=false \
+            --prerelease=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release Info
-        id: info
-        run: |
-          echo "Published themes: ${{steps.date.outputs.date}} to: https://github.com/${{ steps.env.outputs.RELEASE_ORG}}/${{ steps.env.outputs.RELEASE_REPO}}"
-          
+        run: echo "Release published at: https://github.com/${{ github.repository }}/releases/tag/${{ steps.date.outputs.date }}"
