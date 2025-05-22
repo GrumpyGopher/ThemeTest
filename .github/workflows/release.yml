@@ -59,9 +59,7 @@ jobs:
         run: |
           gh release create "${{ steps.date.outputs.date }}" /tmp/release/*.muxthm \
             --title "All Themes" \
-            --notes "Automated release of all themes." \
-            --draft=false \
-            --prerelease=false
+            --notes "Automated release of all themes."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
