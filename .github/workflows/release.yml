@@ -66,4 +66,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release Info
-        run: echo "Release published at: https://github.com/${{ github.repository }}/releases/tag/${{ steps.date.outputs.date }}"
+        id: info
+        run: |
+          echo "Published themes: ${{steps.date.outputs.date}} to: https://github.com/${{ steps.env.outputs.RELEASE_ORG}}/${{ steps.env.outputs.RELEASE_REPO}}"
