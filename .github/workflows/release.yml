@@ -59,10 +59,14 @@ jobs:
         run: |
           gh release create "${{ steps.date.outputs.date }}" \
             --title "All Themes" \
-            --notes "Automated release of all themes." \
-            $(for f in /tmp/release/*.muxthm; do echo "\"$f#$(basename "$f")\""; done)
+            --notes "Automated release of all themes."
+
+          for f in /tmp/release/*.muxthm; do
+            gh release upload "${{ steps.date.outputs.date }}" "$f" --name "$(basename "$f")" --clobber
+          done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Release Info
         id: info
