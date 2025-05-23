@@ -62,10 +62,12 @@ jobs:
             --notes "Automated release of all themes."
 
           for f in /tmp/release/*.muxthm; do
-            gh release upload "${{ steps.date.outputs.date }}" "$f" --name "$(basename "$f")" --clobber
+            name="$(basename "$f")"
+            gh release upload "${{ steps.date.outputs.date }}" "$f#$name" --clobber
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
       - name: Release Info
