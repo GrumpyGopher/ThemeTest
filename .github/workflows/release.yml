@@ -57,9 +57,10 @@ jobs:
       # Create release with all .muxthm files
       - name: Create GitHub Release
         run: |
-          gh release create "${{ steps.date.outputs.date }}" /tmp/release/*.muxthm \
+          gh release create "${{ steps.date.outputs.date }}" \
             --title "All Themes" \
-            --notes "Automated release of all themes."
+            --notes "Automated release of all themes." \
+            $(for f in /tmp/release/*.muxthm; do echo "\"$f#$(basename "$f")\""; done)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
