@@ -43,6 +43,7 @@ jobs:
 
           # Get latest release tag (never delete this one)
           LATEST=$(gh release view --json tagName -q '.tagName')
+          echo "Latest release: $LATEST"
 
           # Get releases older than 90 days
           OLD_RELEASES=$(gh release list --limit 1000 --json name,tagName,createdAt -q \
