@@ -58,13 +58,13 @@ jobs:
             fi
 
             # Skip if last Pixie release
-            if [[ "$name" == "Pixie Themes Final Release" ]]; then
+            if [[ "$name" == "TPixie Themes Final Release" ]]; then
               echo "Name Match, Skipping last Pixie release: $tag  $name"
               continue
             fi
 
             # Skip if it's the latest release
-            if [[ "$tag" == "2025-08-23_1523" ]]; then
+            if [[ "$tag" == "T2025-08-23_1523" ]]; then
               echo "Tag Match, Skipping last Pixie release: $tag  $name"
               continue
             fi
