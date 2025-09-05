@@ -70,7 +70,7 @@ jobs:
             fi
 
             # Otherwise delete it
-            echo "Deleting release: $tag"
+            echo "Deleting release2: $tag"
             gh release delete "$tag" -y
             git push origin :refs/tags/"$tag" || true  # delete the tag too
           done
