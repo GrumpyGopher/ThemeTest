@@ -38,9 +38,6 @@ jobs:
           
       - name: Delete old releases (older than 3 months)
         run: |
-          # Tag patterns you always want to keep
-          KEEP_TAGS=("2025-05-23_0411" "2025-08-23_1523")
-
           # Get latest release tag (never delete this one)
           LATEST=$(gh release view --json tagName -q '.tagName')
           echo "Latest release: $LATEST"
@@ -62,27 +59,20 @@ jobs:
 
             # Skip if last Pixie release
             if [[ "$name" == "Pixie Themes Final Release" ]]; then
-              echo "Skipping last Pixie release: $tag  $name"
+              echo "Name Match, Skipping last Pixie release: $tag  $name"
               continue
             fi
 
-            # Skip if it matches any KEEP_TAGS pattern
-            SKIP=false
-            for keep in "${KEEP_TAGS[@]}"; do
-              if [[ "$tag" == $keep ]]; then
-                echo "Skipping protected release: $tag"
-                SKIP=true
-                break
-              fi
-            done
-            if [ "$SKIP" = true ]; then
+            # Skip if it's the latest release
+            if [[ "$tag" == "2025-08-23_1523" ]]; then
+              echo "Tag Match, Skipping last Pixie release: $tag  $name"
               continue
             fi
 
             # Otherwise delete it
             echo "Deleting release: $tag"
-            # gh release delete "$tag" -y
-            # git push origin :refs/tags/"$tag" || true  # delete the tag too
+            gh release delete "$tag" -y
+            git push origin :refs/tags/"$tag" || true  # delete the tag too
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
