@@ -47,12 +47,22 @@ jobs:
 
           # Get releases older than 90 days
           OLD_RELEASES=$(gh release list --limit 1000 --json name,tagName,createdAt -q \
-            '.[] | select((.createdAt | fromdateiso8601) < (now - (90*24*60*60))) | .tagName')
+            '.[] | select((.createdAt | fromdateiso8601) < (now - (90*24*60*60))) | {tag: .tagName, name: .name}')
 
-          for tag in $OLD_RELEASES; do
+          echo "$OLD_RELEASES" | while read -r release; do
+            tag=$(echo "$release" | jq -r '.tag')
+            name=$(echo "$release" | jq -r '.name')
+            echo "Found release: '$name' ($tag)"
+
             # Skip if it's the latest release
             if [[ "$tag" == "$LATEST" ]]; then
               echo "Skipping latest release: $tag"
+              continue
+            fi
+
+            # Skip if last Pixie release
+            if [[ "$name" == "Pixie Themes Final Release" ]]; then
+              echo "Skipping last Pixie release: $tag  $name"
               continue
             fi
 
