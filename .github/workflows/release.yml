@@ -103,7 +103,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           STATIC_TAG="2606.0_Andromeda"
-          
+
           # 1. Check if the static release already exists on GitHub
           if gh release view "$STATIC_TAG" >/dev/null 2>&1; then
             echo "Found existing static release. Archiving..."
