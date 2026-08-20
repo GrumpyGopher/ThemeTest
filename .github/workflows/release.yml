@@ -98,31 +98,36 @@ jobs:
         run: |
             echo "date=$(date +'%Y-%m-%d_%H%M')" >> $GITHUB_OUTPUT
 
-      - name: Prepare Release
-        uses: ncipollo/release-action@v1.14.0
-        with:
-          name: "2606.0 Andromeda Themes ${{steps.date.outputs.date}}"
-          tag: "2606.0_Andromeda_${{steps.date.outputs.date}}"
-          allowUpdates: true
-          draft: true
-          prerelease: false
-          replacesArtifacts: false
-          omitNameDuringUpdate: true
-          artifacts: "/tmp/release/*.muxthm"
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Archive Previous Static Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATIC_TAG="2606.0"
+          
+          # 1. Check if the static release already exists on GitHub
+          if gh release view "$STATIC_TAG" >/dev/null 2>&1; then
+            echo "Found existing static release. Archiving..."
 
-      - name: Publish Release
-        uses: ncipollo/release-action@v1.14.0
-        with:
-          name: "2606.0 Andromeda Themes ${{steps.date.outputs.date}}"
-          tag: "2606.0_Andromeda_${{steps.date.outputs.date}}"
-          omitBodyDuringUpdate: true
-          omitNameDuringUpdate: true
-          allowUpdates: true
-          draft: false
-          prerelease: false
-          makeLatest: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+            # Get the exact commit SHA that the current static release points to
+            OLD_SHA=$(gh release view "$STATIC_TAG" --json targetCommitish --jq '.targetCommitish')
+            
+            # Fetch the creation date of that OLD release to use as the archive tag name
+            # Format: 2606.0_20260819223000
+            OLD_DATE=$(gh release view "$STATIC_TAG" --json createdAt --jq '.createdAt' | tr -d '-:TZ')
+            ARCHIVE_TAG="${STATIC_TAG}_${OLD_DATE}"
+
+            # Point the unique archive tag to that old commit and push it
+            git tag "$ARCHIVE_TAG" "$OLD_SHA"
+            git push origin "$ARCHIVE_TAG"
+
+            # Tell GitHub to edit the existing release page: move it to the archive tag
+            gh release edit "$STATIC_TAG" --tag "$ARCHIVE_TAG" --title "Release $ARCHIVE_TAG"
+
+            # Delete the old static tag reference from GitHub so the slot is free
+            git push origin --delete "$STATIC_TAG" || true
+          else
+            echo "No existing static release found. Proceeding with initial creation."
+          fi
 
       - name: Prepare Release
         uses: ncipollo/release-action@v1.14.0
@@ -132,7 +137,7 @@ jobs:
           allowUpdates: true
           draft: true
           prerelease: false
-          replacesArtifacts: true
+          replacesArtifacts: false
           omitNameDuringUpdate: true
           artifacts: "/tmp/release/*.muxthm"
           token: ${{ secrets.GITHUB_TOKEN }}
