@@ -142,6 +142,7 @@ jobs:
             --target "$GITHUB_SHA" \
             --title "2606.0 Andromeda Themes Latest" \
             --notes "Static URL used by Theme Downloader. Current build artifact is synced from history release: 2606.0_${{ steps.date.outputs.date }}" \
+            --prerelease \
             /tmp/release/*.muxthm
 
       - name: Release Info
