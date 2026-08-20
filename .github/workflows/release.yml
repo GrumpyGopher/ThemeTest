@@ -92,6 +92,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Archive and move release tag
+        permissions:
+          contents: write
+          workflows: write
         run: |
           git fetch --tags
       
