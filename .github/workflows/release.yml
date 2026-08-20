@@ -121,6 +121,7 @@ jobs:
           allowUpdates: true
           draft: false
           prerelease: false
+          makelatest: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Static Track Release (No Tag Movement)
@@ -147,7 +148,7 @@ jobs:
 
           # 4. Update the text to point to the newest commit/history tag
           gh release edit "$STATIC_TAG" \
-            --notes "Static URL tracking track. Current build artifact is synced from history release: 2606.0_${{ steps.date.outputs.date }}"
+            --notes "Static URL used by Theme Downloader. Current build artifact is synced from history release: 2606.0_${{ steps.date.outputs.date }}"
 
       - name: Release Info
         id: info
