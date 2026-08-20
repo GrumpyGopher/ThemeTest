@@ -153,6 +153,7 @@ jobs:
           allowUpdates: true
           draft: false
           prerelease: false
+          makeLatest: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release Info
