@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      workflows: write
       pull-requests: write
       repository-projects: write
     steps:
@@ -99,19 +100,15 @@ jobs:
             echo "2606.0_Andromeda tag does not already exist"
           else
             OLD_COMMIT=$(git rev-list -n 1 2606.0_Andromeda)
-            DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d_%H%M' "$OLD_COMMIT")
+            DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d_%H%M' 2606.0_Andromeda)
             OLD_TAG="2606.0_Andromeda_${DATE}"
         
-            echo "Creating $OLD_TAG pointing to $OLD_COMMIT"
+            echo "Archiving 2606.0_Andromeda at $OLD_COMMIT as $OLD_TAG"
         
-            gh api \
-              --method POST \
-              "/repos/${GITHUB_REPOSITORY}/git/refs" \
-              -f "ref=refs/tags/${OLD_TAG}" \
-              -f "sha=${OLD_COMMIT}"
+            # Preserve the old commit
+            git tag "$OLD_TAG" "$OLD_COMMIT"
+            git push origin "$OLD_TAG"
           fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare Release
         uses: ncipollo/release-action@v1.14.0
