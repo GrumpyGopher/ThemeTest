@@ -100,7 +100,7 @@ jobs:
           else
             OLD_COMMIT=$(git rev-list -n 1 2606.0_Andromeda)
             DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d_%H%M' 2606.0_Andromeda)
-            OLD_TAG="2606.0_Andromeda_${{ DATE }}"
+            OLD_TAG="2606.0_Andromeda_${DATE}""
         
             echo "Archiving 2606.0_Andromeda at $OLD_COMMIT as $OLD_TAG"
         
