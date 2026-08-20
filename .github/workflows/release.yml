@@ -112,9 +112,10 @@ jobs:
             OLD_SHA=$(gh release view "$STATIC_TAG" --json targetCommitish --jq '.targetCommitish')
             
             # Fetch the creation date of that OLD release to use as the archive tag name
-            # Format: 2606.0_20260819223000
-            OLD_DATE=$(gh release view "$STATIC_TAG" --json createdAt --jq '.createdAt' | tr -d '-:TZ')
+            OLD_DATE=$(gh release view "$STATIC_TAG" --json createdAt --jq '.createdAt' | sed 's/[-:TZ]//g')
             ARCHIVE_TAG="${STATIC_TAG}_${OLD_DATE}"
+
+            echo "Moving old release to archive tag: $ARCHIVE_TAG"
 
             # Point the unique archive tag to that old commit and push it
             git tag "$ARCHIVE_TAG" "$OLD_SHA"
