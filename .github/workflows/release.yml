@@ -91,25 +91,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get previous release date
-        id: date
-        run: |
-          git fetch --tags
-          DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d_%H%M' 2606.0_Andromeda)
-          echo "date=$DATE" >> "$GITHUB_OUTPUT"
-          
-      - name: Archive current release tag
+      - name: Archive and move release tag
         run: |
           git fetch --tags
       
+          if ! git rev-parse --verify "refs/tags/2606.0_Andromeda" >/dev/null 2>&1; then
+            echo "2606.0_Andromeda does not exist"
+            exit 1
+          fi
+      
+          OLD_COMMIT=$(git rev-list -n 1 2606.0_Andromeda)
           OLD_TAG="2606.0_Andromeda_${{ steps.date.outputs.date }}"
       
-          # Create historical tag pointing to the commit currently
-          # referenced by 2606.0_Themes
-          git tag "$OLD_TAG" 2606.0_Themes
+          echo "Archiving 2606.0_Andromeda at $OLD_COMMIT as $OLD_TAG"
       
-          # Push the historical tag
+          # Preserve the old commit
+          git tag "$OLD_TAG" "$OLD_COMMIT"
           git push origin "$OLD_TAG"
+      
 
       - name: Prepare Release
         uses: ncipollo/release-action@v1.14.0
