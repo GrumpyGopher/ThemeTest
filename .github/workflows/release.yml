@@ -98,20 +98,31 @@ jobs:
         run: |
             echo "date=$(date +'%Y-%m-%d_%H%M')" >> $GITHUB_OUTPUT
 
-      - name: Push Unique and Floating Tags
-        run: |
-          STATIC_TAG="2606.0_Andromeda"
-          UNIQUE_TAG="2606.0_Andromeda_${{ steps.date.outputs.date }}"
-          
-          # 1. Create and push the unique tag for history tracking
-          git tag $UNIQUE_TAG
-          git push origin $UNIQUE_TAG
-          
-          # 2. Force move the static tag locally and overwrite it on GitHub
-          git tag -f $STATIC_TAG
-          git push origin -f $STATIC_TAG
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          name: "2606.0 Andromeda Themes ${{steps.date.outputs.date}}"
+          tag: "2606.0_Andromeda_${{steps.date.outputs.date}}"
+          allowUpdates: true
+          draft: true
+          prerelease: false
+          replacesArtifacts: false
+          omitNameDuringUpdate: true
+          artifacts: "/tmp/release/*.muxthm"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          name: "2606.0 Andromeda Themes ${{steps.date.outputs.date}}"
+          tag: "2606.0_Andromeda_${{steps.date.outputs.date}}"
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          allowUpdates: true
+          draft: false
+          prerelease: false
+          makeLatest: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare Release
         uses: ncipollo/release-action@v1.14.0
