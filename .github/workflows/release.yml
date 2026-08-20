@@ -98,43 +98,11 @@ jobs:
         run: |
             echo "date=$(date +'%Y-%m-%d_%H%M')" >> $GITHUB_OUTPUT
 
-      - name: Archive Previous Static Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          STATIC_TAG="2606.0_Andromeda"
-
-          # 1. Check if the static release already exists on GitHub
-          if gh release view "$STATIC_TAG" >/dev/null 2>&1; then
-            echo "Found existing static release. Archiving..."
-
-            # Get the exact commit SHA that the current static release points to
-            OLD_SHA=$(gh release view "$STATIC_TAG" --json targetCommitish --jq '.targetCommitish')
-            
-            # Fetch the creation date of that OLD release to use as the archive tag name
-            OLD_DATE=$(gh release view "$STATIC_TAG" --json createdAt --jq '.createdAt' | sed 's/[-:TZ]//g')
-            ARCHIVE_TAG="${STATIC_TAG}_${OLD_DATE}"
-
-            echo "Moving old release to archive tag: $ARCHIVE_TAG"
-
-            # Point the unique archive tag to that old commit and push it
-            git tag "$ARCHIVE_TAG" "$OLD_SHA"
-            git push origin "$ARCHIVE_TAG"
-
-            # Tell GitHub to edit the existing release page: move it to the archive tag
-            gh release edit "$STATIC_TAG" --tag "$ARCHIVE_TAG" --title "Release $ARCHIVE_TAG"
-
-            # Delete the old static tag reference from GitHub so the slot is free
-            git push origin --delete "$STATIC_TAG" || true
-          else
-            echo "No existing static release found. Proceeding with initial creation."
-          fi
-
       - name: Prepare Release
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: "2606.0 Andromeda Themes"
-          tag: "2606.0_Andromeda"
+          name: "2606.0 Andromeda Themes ${{ steps.date.outputs.date }}"
+          tag: "2606.0_Andromeda_${{ steps.date.outputs.date }}"
           allowUpdates: true
           draft: true
           prerelease: false
@@ -146,15 +114,40 @@ jobs:
       - name: Publish Release
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: "2606.0 Andromeda Themes"
-          tag: "2606.0_Andromeda"
+          name: "2606.0 Andromeda Themes ${{ steps.date.outputs.date }}"
+          tag: "2606.0_Andromeda_${{ steps.date.outputs.date }}"
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true
           allowUpdates: true
           draft: false
           prerelease: false
-          makeLatest: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Static Track Release (No Tag Movement)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATIC_TAG="2606.0_Andromeda"
+
+          # 1. If the static release page doesn't exist yet, create it once
+          if ! gh release view "$STATIC_TAG" >/dev/null 2>&1; then
+            gh release create "$STATIC_TAG" \
+              --title "Latest 2606.0 Andromeda Build"
+          fi
+
+          # 2. Clear out the old zip files from the static release page
+          echo "Clearing old assets..."
+          for asset in $(gh release view "$STATIC_TAG" --json assets --jq '.assets[].name'); do
+            gh release delete-asset "$STATIC_TAG" "$asset" -y || true
+          done
+
+          # 3. Upload the fresh zip files to the static release page
+          echo "Uploading new assets..."
+          gh release upload "$STATIC_TAG" /tmp/release/*.muxthm --clobber
+
+          # 4. Update the text to point to the newest commit/history tag
+          gh release edit "$STATIC_TAG" \
+            --notes "Static URL tracking track. Current build artifact is synced from history release: 2606.0_${{ steps.date.outputs.date }}"
 
       - name: Release Info
         id: info
