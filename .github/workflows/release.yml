@@ -100,15 +100,27 @@ jobs:
             echo "2606.0_Andromeda tag does not already exist"
           else
             OLD_COMMIT=$(git rev-list -n 1 2606.0_Andromeda)
-            DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d_%H%M' 2606.0_Andromeda)
+            DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d_%H%M' "$OLD_COMMIT")
             OLD_TAG="2606.0_Andromeda_${DATE}"
-        
-            echo "Archiving 2606.0_Andromeda at $OLD_COMMIT as $OLD_TAG"
-        
-            # Preserve the old commit
-            git tag "$OLD_TAG" "$OLD_COMMIT"
-            git push origin "$OLD_TAG"
+            CURRENT_TAG="2606.0_Andromeda"
+
+            echo "Creating $OLD_TAG pointing to $OLD_COMMIT"
+            # 1. Point the backup tag to the same commit as the current tag
+            git tag ${OLD_TAG} ${CURRENT_TAG}
+            git push origin ${OLD_TAG}
+            
+            # 2. Find the existing release ID tied to the current tag
+            RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/${CURRENT_TAG} --jq '.id')
+
+            gh api \
+              --method PATCH \
+              -H "Accept: application/vnd.github+json" \
+              /repos/${{ github.repository }}/releases/$RELEASE_ID \
+              -f tag_name='${OLD_TAG}' \
+              -f name='Archive: ${CURRENT_TAG}'
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare Release
         uses: ncipollo/release-action@v1.14.0
