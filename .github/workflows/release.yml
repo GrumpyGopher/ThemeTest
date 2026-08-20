@@ -133,7 +133,7 @@ jobs:
           # 1. If the static release exists, delete it to clear out the old commit reference
           if gh release view "$STATIC_TAG" >/dev/null 2>&1; then
             echo "Deleting old static release to update commit target..."
-            gh release delete "$STATIC_TAG" --yes
+            gh release delete "$STATIC_TAG" --cleanup-tag --yes
           fi
 
           # 2. Create a brand new static release directly on the newest commit hash
