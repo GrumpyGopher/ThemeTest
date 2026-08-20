@@ -130,27 +130,19 @@ jobs:
         run: |
           STATIC_TAG="2606.0_Andromeda"
 
-          # 1. If the static release page doesn't exist yet, create it once
-          if ! gh release view "$STATIC_TAG" >/dev/null 2>&1; then
-            gh release create "$STATIC_TAG" \
-              --title "Latest 2606.0 Andromeda Build" \
-              --target "$GITHUB_SHA"
+          # 1. If the static release exists, delete it to clear out the old commit reference
+          if gh release view "$STATIC_TAG" >/dev/null 2>&1; then
+            echo "Deleting old static release to update commit target..."
+            gh release delete "$STATIC_TAG" --yes
           fi
 
-          # 2. Clear out the old zip files from the static release page
-          echo "Clearing old assets..."
-          for asset in $(gh release view "$STATIC_TAG" --json assets --jq '.assets[].name'); do
-            gh release delete-asset "$STATIC_TAG" "$asset" -y || true
-          done
-
-          # 3. Upload the fresh zip files to the static release page
-          echo "Uploading new assets..."
-          gh release upload "$STATIC_TAG" /tmp/release/*.muxthm --clobber
-
-          # 4. Update the text to point to the newest commit/history tag
-          gh release edit "$STATIC_TAG" \
+          # 2. Create a brand new static release directly on the newest commit hash
+          echo "Recreating static release on commit $GITHUB_SHA..."
+          gh release create "$STATIC_TAG" \
             --target "$GITHUB_SHA" \
-            --notes "Static URL used by Theme Downloader. Current build artifact is synced from history release: 2606.0_${{ steps.date.outputs.date }}"
+            --title "Latest 2606.0 Andromeda Build" \
+            --notes "Static URL used by Theme Downloader. Current build artifact is synced from history release: 2606.0_${{ steps.date.outputs.date }}" \
+            /tmp/release/*.muxthm
 
       - name: Release Info
         id: info
