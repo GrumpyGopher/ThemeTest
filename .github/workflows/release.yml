@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 # Create theme archives here! Zipping everything together and creating a complete theme archive.
       - name: Zip Legacy directories
         run: |
@@ -124,7 +122,6 @@ jobs:
           allowUpdates: true
           draft: false
           prerelease: false
-          makelatest: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Static Track Release (No Tag Movement)
@@ -151,4 +148,4 @@ jobs:
         id: info
         run: |
           echo "Published themes: ${{steps.date.outputs.date}} to: https://github.com/${{ steps.env.outputs.RELEASE_ORG}}/${{ steps.env.outputs.RELEASE_REPO}}"
-          
+
