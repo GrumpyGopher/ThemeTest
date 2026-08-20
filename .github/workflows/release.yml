@@ -133,7 +133,8 @@ jobs:
           # 1. If the static release page doesn't exist yet, create it once
           if ! gh release view "$STATIC_TAG" >/dev/null 2>&1; then
             gh release create "$STATIC_TAG" \
-              --title "Latest 2606.0 Andromeda Build"
+              --title "Latest 2606.0 Andromeda Build" \
+              --target "$GITHUB_SHA"
           fi
 
           # 2. Clear out the old zip files from the static release page
@@ -148,6 +149,7 @@ jobs:
 
           # 4. Update the text to point to the newest commit/history tag
           gh release edit "$STATIC_TAG" \
+            --target "$GITHUB_SHA" \
             --notes "Static URL used by Theme Downloader. Current build artifact is synced from history release: 2606.0_${{ steps.date.outputs.date }}"
 
       - name: Release Info
